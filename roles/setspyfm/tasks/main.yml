@@ -1,0 +1,3 @@
+---
+- include_tasks: frontend.yml
+- include_tasks: backend.yml

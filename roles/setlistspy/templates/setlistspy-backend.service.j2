@@ -1,0 +1,12 @@
+[Unit]
+Description=Setlist Spy Frontend Service
+After=network.target
+
+[Service]
+KillMode=none
+ExecStart=/home/{{ created_user }}/setlistspy-angular-flask/server/venv/bin/python3.6 app.py
+Restart=on-failure
+WorkingDirectory=/home/{{ created_user }}/setlistspy-angular-flask/server/
+
+[Install]
+WantedBy=multi-user.target

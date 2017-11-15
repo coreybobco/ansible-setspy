@@ -1,0 +1,5 @@
+- hosts: secured
+  roles:
+    - common
+    - setspyfm
+    - setlistspy

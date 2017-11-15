@@ -1,0 +1,38 @@
+- name: git clone into setspyfm frontend repo
+  git:
+    repo: https://github.com/coreybobco/setspyfm-react-frontend.git
+    dest: ~/setspyfm-frontend/
+- apt_key:
+    url: https://dl.yarnpkg.com/debian/pubkey.gpg
+    state: present
+  become: true
+- apt_repository:
+    repo: deb https://dl.yarnpkg.com/debian/ stable main
+    state: present
+    filename: yarn.list
+  become: true
+- name: install yarn
+  apt:
+    name: yarn
+  become: true
+- name: install dependencies with yarn
+  shell: "yarn install"
+  args:
+    chdir: "/home/{{ created_user }}/setspyfm-frontend/"
+- name: copy setspy.fm nginx configuration
+  copy:
+    src: setspy.fm
+    dest: /etc/nginx/sites-enabled/setspy.fm
+  become: true
+  notify:
+    - restart nginx
+- name: add setspyfm-frontend service daemon
+  template:
+    src: setspyfm-frontend.service.j2
+    dest: /etc/systemd/system/setspyfm-frontend.service
+  become: true
+- systemd:
+    enabled: yes
+    name: setspyfm-frontend
+    state: started
+  become: true

@@ -1,0 +1,12 @@
+[Unit]
+Description=Setlist Spy Frontend Service
+After=network.target
+
+[Service]
+KillMode=none
+ExecStart=/home/{{ created_user }}/setspyfm-backend/setspy_api/venv/bin/python3.6 manage.py runserver 4500
+Restart=on-failure
+WorkingDirectory=/home/{{ created_user }}/setspyfm-backendr/
+
+[Install]
+WantedBy=multi-user.target

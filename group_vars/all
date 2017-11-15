@@ -1,0 +1,7 @@
+host_ip: "{{ lookup('env','host_ip') }}"
+hostname: "{{ lookup('env','hostname') }}"
+created_user: "{{ lookup('env','created_user') }}"
+created_password: "{{ lookup('env','created_password') }}"
+setspyfm_psql_db_name: "{{ lookup('env','setspyfm_psql_db_name') }}"
+setspyfm_psql_user: "{{ lookup('env','setspyfm_psql_user') }}"
+setspyfm_psql_password: "{{ lookup('env','setspyfm_psql_password') }}"

@@ -1,0 +1,12 @@
+[Unit]
+Description=SetspyFM Frontend Service
+After=network.target
+
+[Service]
+KillMode=none
+ExecStart=/usr/bin/yarn start
+Restart=on-failure
+WorkingDirectory=/home/{{ created_user }}/setspyfm-frontend/
+
+[Install]
+WantedBy=multi-user.target

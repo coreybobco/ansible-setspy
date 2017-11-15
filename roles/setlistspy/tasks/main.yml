@@ -1,0 +1,57 @@
+---
+- name: git clone into setlistspy-angular-flask repo
+  git:
+    repo: https://github.com/coreybobco/setlist-spy-angular-flask.git
+    dest: ~/setlistspy-angular-flask/
+    force: no
+    update: no
+- pip:
+    name: "{{ item }}"
+    virtualenv: ~/setlistspy-angular-flask/server/venv
+    virtualenv_python: python3.6
+  with_items:
+    - Flask
+    - lxml
+    - requests
+    - psycopg2
+- name: copy setlistspy.com nginx configuration
+  copy:
+    src: setlistspy.com
+    dest: /etc/nginx/sites-enabled/setlistspy.com
+  become: true
+  notify:
+    - restart nginx
+- template:
+    src: db.json.j2
+    dest: ~/setlistspy-angular-flask/server/db.json
+- npm:
+    path: ~/setlistspy-angular-flask/
+- npm:
+    name: "{{ item }}"
+    global: yes
+  with_items:
+    - grunt
+    - bower
+  become: true
+- bower:
+    path: ~/setlistspy-angular-flask/
+- name: add setlistspy-frontend service daemon
+  template:
+    src: setlistspy-frontend.service.j2
+    dest: /etc/systemd/system/setlistspy-frontend.service
+  become: true
+- systemd:
+    enabled: yes
+    name: setlistspy-frontend
+    state: started
+  become: true
+- name: add setlistspy-backend service daemon
+  template:
+    src: setlistspy-backend.service.j2
+    dest: /etc/systemd/system/setlistspy-backend.service
+  become: true
+- systemd:
+    enabled: yes
+    name: setlistspy-backend
+    state: started
+  become: true

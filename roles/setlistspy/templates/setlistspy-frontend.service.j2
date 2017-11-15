@@ -1,0 +1,12 @@
+[Unit]
+Description=Setlist Spy Frontend Service
+After=network.target
+
+[Service]
+KillMode=none
+ExecStart=/usr/bin/grunt serve
+Restart=on-failure
+WorkingDirectory=/home/{{ created_user }}/setlistspy-angular-flask/
+
+[Install]
+WantedBy=multi-user.target

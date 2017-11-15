@@ -1,0 +1,25 @@
+---
+- shell: curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+  args:
+    creates: /etc/apt/sources.list.d/nodesource.list
+- name: install xfce desktop, screen, git, nodejs
+  become: true
+  apt:
+    name: "{{ item }}"
+    update_cache: true
+  with_items:
+    - screen
+    - git
+    - curl
+    - nodejs
+- apt:
+    name: nginx
+  notify:
+  - restart nginx
+- name: remove default nginx configuration
+  become: true
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify:
+  - restart nginx

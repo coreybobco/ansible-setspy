@@ -1,0 +1,103 @@
+- name: git clone into setspyfm backend repo
+  git:
+    repo: https://github.com/coreybobco/setspyfm-django-backend.git
+    dest: ~/setspyfm-backend/
+    force: yes
+    update: yes
+- name: apt install prereqs
+  become: true
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - python-pip
+    - python3-django
+    - virtualenv
+    - postgresql-9.6
+    - libfontconfig
+- get_url:
+    url: https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
+    dest: "/tmp/phantomjs.tar.bz2"
+- name: install phantomjs
+  become: true
+  shell: "cd /tmp && tar xvjf /tmp/phantomjs.tar.bz2 -C /usr/local/bin/ --overwrite --wildcards '**/bin/phantomjs' --strip-components=2"
+  args:
+    creates: /usr/local/bin/phantomjs
+- file:
+    path: /usr/local/bin/phantomjs
+    state: file
+    mode: 0755
+- name: install psycopg2
+  become: true
+  become_user: postgres
+  pip:
+    name: psycopg2
+- pip:
+    name: "{{ item }}"
+    state: latest
+    virtualenv: ~/setspyfm-backend/setspy_api/venv
+    virtualenv_python: python3
+  with_items:
+    - Django
+    - django-environ
+    - django-extensions
+    - django-grappelli
+    - djangorestframework
+    - lxml
+    - psycopg2
+    - requests
+    - selenium
+    - xmltodict
+    - discogs_client
+- name: override settings.py with template
+  template:
+    src: settings.py.j2
+    dest: ~/setspyfm-backend/setspy_api/setspy_api/settings.py
+- name: tell postgresql to listen to all addresses
+  lineinfile:
+    path: /etc/postgresql/9.6/main/postgresql.conf
+    regexp: "^listen_addresses ="
+    line: "listen_addresses = '*'          # what IP address(es) to listen on;"
+  notify:
+    - restart postgresql
+  become: true
+- name: tell postgresql to listen to all addresses
+  lineinfile:
+    path: /etc/postgresql/9.6/main/pg_hba.conf
+    line: "host    all             all             0.0.0.0/0           md5"
+    insertafter: EOF
+  notify:
+    - restart postgresql
+  become: true
+- name: add postgresql user if does not exist
+  postgresql_user:
+    name: "{{ setspyfm_psql_user }}"
+    password: "{{ setspyfm_psql_password }}"
+  become: true
+  become_user: postgres
+- name: add postgresql db if does not exist
+  postgresql_db:
+    name: "{{ setspyfm_psql_db_name }}"
+  become: true
+  become_user: postgres
+- name: grant privileges on the psql db to the user
+  postgresql_privs:
+    database: "{{ setspyfm_psql_db_name }}"
+    roles: "{{ setspyfm_psql_user }}"
+    privs: ALL
+    type: database
+  become: true
+  become_user: postgres
+- name: make the tables if needed
+  shell: python3 manage.py migrate
+  args:
+    chdir: ~/setspyfm-backend/setspy_api/
+- name: add setlistspy-backend service daemon
+  template:
+    src: setspyfm-backend.service.j2
+    dest: /etc/systemd/system/setspyfm-backend.service
+  become: true
+- systemd:
+    enabled: yes
+    name: setlistspy-backend
+    state: started
+  become: true
