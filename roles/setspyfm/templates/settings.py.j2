@@ -1,5 +1,5 @@
 import uuid
-
+import os
 import environ
 
 
@@ -21,11 +21,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'silk',
     'setspy_api',
+    'django_filters',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -33,6 +38,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'silk.middleware.SilkyMiddleware',
 ]
 
 ROOT_URLCONF = 'setspy_api.urls'
@@ -61,7 +67,7 @@ DATABASES = {
         'NAME': "{{ setspyfm_psql_db_name }}",
         'USER': "{{ setspyfm_psql_user }}",
         'PASSWORD': "{{ setspyfm_psql_password }}",
-        'HOST': '127.0.0.1',
+        'HOST': "{{ hostname }}",
     }
 }
 
@@ -105,6 +111,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': env('LOG_LEVEL', default='INFO'),
         },
+        'django.db': {
+            'handlers': ['console'],
+            'level': env('DB_LOG_LEVEL', default='INFO'),
+        },
     },
 }
 
@@ -126,6 +136,10 @@ if DEBUG:
     sys.excepthook = myexcepthook
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
+    'DEFAULT_PAGINATION_CLASS': None,
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'PAGE_SIZE': 20,
 }
+
+CORS_ORIGIN_ALLOW_ALL = True
+STATIC_ROOT = "/home/{{ created_user }}/setspyfm-backend/static/"

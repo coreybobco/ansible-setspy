@@ -41,7 +41,11 @@
     - django-environ
     - django-extensions
     - django-grappelli
+    - django-silk
+    - django-filter
+    - django-cors-headers
     - djangorestframework
+    - whitenoise
     - lxml
     - psycopg2
     - requests
@@ -87,16 +91,22 @@
     type: database
   become: true
   become_user: postgres
-- name: make the tables if needed
-  shell: python3 manage.py migrate
+- name: migrate if needed
+  shell: ./venv/bin/python3.6 manage.py migrate
   args:
     chdir: ~/setspyfm-backend/setspy_api/
+- name: collectstatic if needed
+  shell: ./venv/bin/python3.6 manage.py collectstatic
+  args:
+    chdir: ~/setspyfm-backend/setspy_api/
+    creates: /home/{{ created_user }}/setspyfm-backend/static/
 - name: add setlistspy-backend service daemon
   template:
     src: setspyfm-backend.service.j2
     dest: /etc/systemd/system/setspyfm-backend.service
   become: true
 - systemd:
+    daemon-reload: yes
     enabled: yes
     name: setlistspy-backend
     state: started
